@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t lukstar/deploy_flow_complex -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run lukstar/deploy_flow_complex npm test -- --coverage
+
+after_success:
+  - docker build -t lukstar/deploy_flow_complex_client ./client
+  - docker build -t lukstar/deploy_flow_complex_nginx ./nginx
+  - docker build -t lukstar/deploy_flow_complex_server ./server
+  - docker build -t lukstar/deploy_flow_complex_worker ./worker
+  # log in to Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to docker hub
+  - docker push lukstar/deploy_flow_complex_client
+  - docker push lukstar/deploy_flow_complex_nginx
+  - docker push lukstar/deploy_flow_complex_server
+  - docker push lukstar/deploy_flow_complex_worker
